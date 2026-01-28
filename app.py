@@ -56,6 +56,7 @@ def display_access_level(data):
     else:
         return '(license verification failed)'
 
+server = app.server
 
 if __name__ == "__main__":
     app.run(debug=True)
