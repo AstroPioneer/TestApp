@@ -3,7 +3,7 @@ from dash import Dash, html, dcc, callback, Output, Input, ClientsideFunction
 from cedashtools.user_access import encryption
 
 app = Dash(__name__, external_scripts=[
-    "https://cdn.jsdelivr.net/gh/CentricEngineers/usethatapp-cdn/usethatapp.js"
+    "https://cdn.jsdelivr.net/gh/CentricEngineers/usethatapp-cdn@latest/usethatapp.js"
 ])
 
 app.layout = html.Div([
