@@ -1,9 +1,9 @@
 import os
 from dash import Dash, html, dcc, callback, Output, Input, ClientsideFunction
-from cedashtools.user_access import encryption
+from usethatapp.webapps import get_product
 
 app = Dash(__name__, external_scripts=[
-    "https://cdn.jsdelivr.net/gh/CentricEngineers/usethatapp-cdn@latest/usethatapp.js"
+    "https://cdn.jsdelivr.net/gh/UseThatApp/cdn@latest/usethatapp.js"
 ])
 
 app.layout = html.Div([
@@ -46,18 +46,17 @@ app.clientside_callback(
 def display_access_level(data):
     if data is None:
         return "Loading..."
-    encryption.keys.PUBLIC_KEY_FILE_PATH = os.getenv('UTA_PUBLIC_KEY_FILE')
-    encryption.keys.PRIVATE_KEY_FILE_PATH = os.getenv('PRIVATE_KEY_FILE')
-
-    if encryption.verify_signature(encryption.keys.public_key,
-                                   bytes.fromhex(data['message']['signature']),
-                                   bytes.fromhex(data['message']['encrypted'])):
-        return str(encryption.decrypt_message(encryption.keys.private_key, bytes.fromhex(data['message']['encrypted'])), 'utf-8')
-    else:
-        return '(license verification failed)'
+    try:
+        product = get_product(
+            data['message'],
+            public_key_path=os.getenv('UTA_PUBLIC_KEY_FILE'),
+            private_key_path=os.getenv('PRIVATE_KEY_FILE')
+        )
+        return product
+    except Exception as e:
+        return str(e)
 
 server = app.server
 
 if __name__ == "__main__":
     app.run(debug=True)
-
