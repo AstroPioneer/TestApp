@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 app = Dash(__name__, external_scripts=[
-    # "https://cdn.jsdelivr.net/gh/UseThatApp/cdn@latest/usethatapp.js"
+    "https://cdn.jsdelivr.net/gh/UseThatApp/cdn@latest/usethatapp.js"
 ])
 
 app.layout = html.Div([
