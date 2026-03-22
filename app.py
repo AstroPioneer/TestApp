@@ -1,9 +1,15 @@
 import os
+import logging
 from dash import Dash, html, dcc, callback, Output, Input, ClientsideFunction
 from usethatapp.webapps import get_product
 
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
+
 app = Dash(__name__, external_scripts=[
-    "https://cdn.jsdelivr.net/gh/UseThatApp/cdn@latest/usethatapp.js"
+    # "https://cdn.jsdelivr.net/gh/UseThatApp/cdn@latest/usethatapp.js"
 ])
 
 app.layout = html.Div([
@@ -44,9 +50,12 @@ app.clientside_callback(
     Input("access-level-store", "data")
 )
 def display_access_level(data):
+    logger.debug(f"data received = {data}")
+
     if data is None:
         return "Loading..."
     try:
+        logger.debug(f"data keys = {data.keys() if isinstance(data, dict) else 'not a dict'}")
         product = get_product(
             data['message'],
             public_key_path=os.getenv('UTA_PUBLIC_KEY_FILE'),
@@ -54,6 +63,8 @@ def display_access_level(data):
         )
         return product
     except Exception as e:
+        import traceback
+        logger.error(f"Exception: {traceback.format_exc()}")
         return str(e)
 
 server = app.server
