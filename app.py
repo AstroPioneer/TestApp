@@ -1,7 +1,7 @@
 import os
 import logging
 from dash import Dash, html, dcc, callback, Output, Input, ClientsideFunction
-from usethatapp.webapps import get_product
+from usethatapp.webapps import get_version
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -56,12 +56,12 @@ def display_access_level(data):
         return "Loading..."
     try:
         logger.debug(f"data keys = {data.keys() if isinstance(data, dict) else 'not a dict'}")
-        product = get_product(
+        version = get_version(
             data['message'],
             public_key_path=os.getenv('UTA_PUBLIC_KEY_FILE'),
             private_key_path=os.getenv('PRIVATE_KEY_FILE')
         )
-        return product
+        return version
     except Exception as e:
         import traceback
         logger.error(f"Exception: {traceback.format_exc()}")
