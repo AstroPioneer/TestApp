@@ -53,14 +53,15 @@ def display_access_level(data):
     logger.debug(f"data received = {data}")
 
     if data is None:
-        return "Loading..."
+        return "No Data.."
     try:
         logger.debug(f"data keys = {data.keys() if isinstance(data, dict) else 'not a dict'}")
         version = get_version(
-            data['message'],
+            data,
             public_key_path=os.getenv('UTA_PUBLIC_KEY_FILE'),
             private_key_path=os.getenv('PRIVATE_KEY_FILE')
         )
+        logger.debug(f"version = {version}")
         return version
     except Exception as e:
         import traceback
