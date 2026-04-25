@@ -1,15 +1,32 @@
 import os
 import logging
+from collections import deque
 from dash import Dash, html, dcc, callback, Output, Input, ClientsideFunction
 from usethatapp.webapps import get_version
 
 
+# In-memory log buffer used to display log messages in the UI.
+LOG_BUFFER = deque(maxlen=1000)
+
+
+class DequeLogHandler(logging.Handler):
+    def emit(self, record):
+        try:
+            LOG_BUFFER.append(self.format(record))
+        except Exception:
+            pass
+
+
 logging.basicConfig(level=logging.DEBUG)
+_log_handler = DequeLogHandler()
+_log_handler.setLevel(logging.DEBUG)
+_log_handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s"))
+logging.getLogger().addHandler(_log_handler)
 logger = logging.getLogger(__name__)
 
 
 app = Dash(__name__, external_scripts=[
-    "https://cdn.jsdelivr.net/gh/UseThatApp/cdn@latest/usethatapp.js"
+    # "https://cdn.jsdelivr.net/gh/UseThatApp/cdn@latest/usethatapp.js"
 ])
 
 app.layout = html.Div([
@@ -32,6 +49,24 @@ app.layout = html.Div([
         "marginTop": "10px"
     }),
     dcc.Store(id='access-level-store', data=None, storage_type='memory'),
+    html.H2("Logs", style={"marginTop": "40px"}),
+    dcc.Textarea(
+        id="log-textarea",
+        value="",
+        readOnly=True,
+        style={
+            "width": "90%",
+            "height": "800px",
+            "fontFamily": "monospace",
+            "fontSize": "12px",
+            "padding": "10px",
+            "backgroundColor": "#111",
+            "color": "#0f0",
+            "whiteSpace": "pre",
+            "overflow": "auto",
+        },
+    ),
+    dcc.Interval(id="log-interval", interval=1000, n_intervals=0),
 ], style={
     "textAlign": "center",
     "fontFamily": "Arial, sans-serif",
@@ -69,6 +104,15 @@ def display_access_level(data):
         return str(e)
 
 server = app.server
+
+
+@callback(
+    Output("log-textarea", "value"),
+    Input("log-interval", "n_intervals"),
+)
+def update_logs(_n):
+    return "\n".join(LOG_BUFFER)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
