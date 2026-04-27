@@ -1,7 +1,7 @@
 import os
 import logging
 from collections import deque
-from dash import Dash, html, dcc, callback, Output, Input, ClientsideFunction
+from dash import Dash, html, dcc, callback, Output, Input, State, ClientsideFunction
 from usethatapp.webapps import get_version
 
 
@@ -48,7 +48,22 @@ app.layout = html.Div([
         "cursor": "pointer",
         "marginTop": "10px"
     }),
+    html.Button("Extend Logs (+200px)", id="extend-logs-button", n_clicks=0, style={
+        "fontSize": "16px",
+        "padding": "10px 20px",
+        "cursor": "pointer",
+        "marginTop": "10px",
+        "marginLeft": "10px",
+    }),
+    html.Button("Shorten Logs (-200px)", id="shorten-logs-button", n_clicks=0, style={
+        "fontSize": "16px",
+        "padding": "10px 20px",
+        "cursor": "pointer",
+        "marginTop": "10px",
+        "marginLeft": "10px",
+    }),
     dcc.Store(id='access-level-store', data=None, storage_type='memory'),
+    dcc.Store(id='log-height-store', data=800, storage_type='memory'),
     html.H2("Logs", style={"marginTop": "40px"}),
     dcc.Textarea(
         id="log-textarea",
@@ -112,6 +127,41 @@ server = app.server
 )
 def update_logs(_n):
     return "\n".join(LOG_BUFFER)
+
+
+@callback(
+    Output("log-height-store", "data"),
+    Input("extend-logs-button", "n_clicks"),
+    Input("shorten-logs-button", "n_clicks"),
+    State("log-height-store", "data"),
+    prevent_initial_call=True,
+)
+def adjust_log_height(_extend_clicks, _shorten_clicks, current_height):
+    from dash import ctx
+    if ctx.triggered_id == "extend-logs-button":
+        return (current_height or 800) + 200
+    if ctx.triggered_id == "shorten-logs-button":
+        return max(100, (current_height or 800) - 200)
+    return current_height
+
+
+@callback(
+    Output("log-textarea", "style"),
+    Input("log-height-store", "data"),
+    prevent_initial_call=False,
+)
+def apply_log_height(height):
+    return {
+        "width": "90%",
+        "height": f"{height or 800}px",
+        "fontFamily": "monospace",
+        "fontSize": "12px",
+        "padding": "10px",
+        "backgroundColor": "#111",
+        "color": "#0f0",
+        "whiteSpace": "pre",
+        "overflow": "auto",
+    }
 
 
 if __name__ == "__main__":
